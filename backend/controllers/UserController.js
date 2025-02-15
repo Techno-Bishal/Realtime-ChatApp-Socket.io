@@ -34,7 +34,11 @@ export const Signup = async (req, res) => {
 
       res.status(200).json({
         message: "User created Successfully 🙆‍♂️",
-        newUser,
+        user: {
+          _id: newUser._id,
+          fullname: newUser.fullname,
+          email: newUser.email,
+        },
       });
     }
   } catch (error) {
@@ -50,7 +54,7 @@ export const Login = async (req, res) => {
   try {
     const user = await User.findOne({ email });
 
-    const isMatched =  await bcrypt.compare(password, user.password);
+    const isMatched = await bcrypt.compare(password, user.password);
 
     if (!user || !isMatched) {
       return res.status(404).json({ error: "Invalid email and password 😭" });
@@ -71,12 +75,24 @@ export const Login = async (req, res) => {
   }
 };
 
-export const Logout  = async ( req,res) => {
-    try{
-         res.clearCookie("jwt")
-         res.status(200).json({message : "User logout successfully"})
-    }catch(error){
-        console.log(error)
-        res.status(500).json({error: "Internal server error"})
-    }
-}
+export const Logout = async (req, res) => {
+  try {
+    res.clearCookie("jwt");
+    res.status(200).json({ message: "User logout successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const allUsers = async (req,res) => {
+  try {
+    const loggedInUser = req.user._id
+    const filteredUsers = await User.find({_id : {$ne: loggedInUser}}).select("-password");
+    res.status(201).json(
+      filteredUsers,
+    );
+  } catch (error) {
+    console.log("Error in allusers controller : " + error);
+  }
+};
